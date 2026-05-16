@@ -1,7 +1,7 @@
 class api_config {
 
   //URL de la API
-  static const String base_url = 'http://192.168.78.101:8080';
+  static const String base_url = 'http://192.168.1.169:8080';
 
   //Endpoint de autenticacion
   static const String login = '$base_url/auth/login';

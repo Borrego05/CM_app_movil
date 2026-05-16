@@ -15,7 +15,7 @@ class ActaSiloService {
   Future<Uint8List> crearActaSilo(
       ActaSilo actaSilo,
       List<File> imagenes,
-      File firmaTecnico,
+      File firmaCliente,
       ) async {
 
     // 1. Obtiene el token guardado
@@ -33,10 +33,10 @@ class ActaSiloService {
     // 4. Agrega los datos del acta como JSON
     request.fields['data'] = jsonEncode(actaSilo.toJson());
 
-    // 5. Agrega la firma del técnico
+    // 5. Agrega la firma del cliente
     request.files.add(await http.MultipartFile.fromPath(
-      'firmaTecnico',
-      firmaTecnico.path,
+      'firmaCliente',
+      firmaCliente.path,
       contentType: MediaType('image', 'png'),
     ));
 

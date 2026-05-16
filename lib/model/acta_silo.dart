@@ -14,6 +14,9 @@ class ActaSilo {
   final String tipo_mantenimiento;
   final String clase_mantenimiento;
   final int tecnico_id;
+  final String telefono_tecnico;
+  final String nombre_recibe;
+  final String cedula_recibe;
 
   ActaSilo({
     required this.contacto,
@@ -30,6 +33,9 @@ class ActaSilo {
     required this.tipo_mantenimiento,
     required this.clase_mantenimiento,
     required this.tecnico_id,
+    required this.telefono_tecnico,
+    required this.nombre_recibe,
+    required this.cedula_recibe,
 });
 
   Map<String, dynamic> toJson() {
@@ -48,6 +54,9 @@ class ActaSilo {
       'tipo_mantenimiento': tipo_mantenimiento,
       'clase_mantenimiento': clase_mantenimiento,
       'tecnico_id': tecnico_id,
+      'telefono_tecnico': telefono_tecnico,
+      'nombre_recibe': nombre_recibe,
+      'cedula_recibe': cedula_recibe,
     };
   }
 }

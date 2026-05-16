@@ -103,7 +103,10 @@ class _LoginScreenState extends State<LoginScreen> {
             top: screenHeight * 0.38,
             left: 24,
             right: 24,
-            child: Card(
+            bottom: 0,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 16),
+              child: Card(
               elevation: 8,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -218,6 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
           ),
+        ),
         ],
       ),
     );

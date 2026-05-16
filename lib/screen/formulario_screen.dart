@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -31,6 +32,10 @@ class _FormularioScreenState extends State<FormularioScreen> {
   final _telefonoController = TextEditingController();
   final _descripcionController = TextEditingController();
   final _materialesController = TextEditingController();
+  final _nombreTecnicoFormController = TextEditingController();
+  final _telefonoTecnicoController = TextEditingController();
+  final _nombreRecibeController = TextEditingController();
+  final _cedulaRecibeController = TextEditingController();
 
   // ── SERVICIOS ───────────────────────────────────────────────
   final _authService = AuthService();
@@ -48,8 +53,8 @@ class _FormularioScreenState extends State<FormularioScreen> {
   List<File> _imagenes = [];
   String? _errorImagenes;
 
-  // ── FIRMA TÉCNICO ────────────────────────────────────────────
-  final _firmaTecnicoController = SignatureController(
+  // ── FIRMA CLIENTE ────────────────────────────────────────────
+  final _firmaClienteController = SignatureController(
     penStrokeWidth: 2,
     penColor: Colors.black,
   );
@@ -160,6 +165,52 @@ class _FormularioScreenState extends State<FormularioScreen> {
     }
   }
 
+  Future<void> _seleccionarDeGaleria() async {
+    final List<XFile> seleccionadas = await _imagePicker.pickMultiImage(imageQuality: 85);
+    for (final XFile foto in seleccionadas) {
+      final corregida = await _corregirRotacion(File(foto.path));
+      setState(() {
+        _imagenes.add(corregida);
+        _errorImagenes = null;
+      });
+    }
+  }
+
+  void _mostrarOpcionesImagen() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFF8DD2F),
+                  child: Icon(Icons.camera_alt, color: Colors.white),
+                ),
+                title: const Text('Tomar foto'),
+                onTap: () { Navigator.pop(context); _tomarFoto(); },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFF8DD2F),
+                  child: Icon(Icons.photo_library, color: Colors.white),
+                ),
+                title: const Text('Seleccionar de galería'),
+                onTap: () { Navigator.pop(context); _seleccionarDeGaleria(); },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _eliminarImagen(int index) {
     setState(() {
       _imagenes.removeAt(index);
@@ -263,8 +314,8 @@ class _FormularioScreenState extends State<FormularioScreen> {
       } else {
         _errorImagenes = null;
       }
-      if (_firmaTecnicoController.isEmpty) {
-        _errorFirma = 'La firma del técnico es obligatoria';
+      if (_firmaClienteController.isEmpty) {
+        _errorFirma = 'La firma del cliente es obligatoria';
         valido = false;
       } else {
         _errorFirma = null;
@@ -284,9 +335,9 @@ class _FormularioScreenState extends State<FormularioScreen> {
     try {
       final tecnicoId = await _authService.getTecnicoId();
 
-      final bytes = await _firmaTecnicoController.toPngBytes();
-      final path = '${Directory.systemTemp.path}/firma_tecnico.png';
-      final firmaTecnico = File(path)..writeAsBytesSync(bytes!);
+      final bytes = await _firmaClienteController.toPngBytes();
+      final path = '${Directory.systemTemp.path}/firma_cliente.png';
+      final firmaCliente = File(path)..writeAsBytesSync(bytes!);
 
       final formulario = Formulario(
         cliente: _clienteController.text,
@@ -299,12 +350,16 @@ class _FormularioScreenState extends State<FormularioScreen> {
         tipo_mantenimiento: _tiposSeleccionados.join(', '),
         clases_mantenimiento: _clasesSeleccionadas.join(', '),
         fk_tecnico_id: int.parse(tecnicoId!),
+        nombre_tecnico: _nombreTecnicoFormController.text,
+        telefono_tecnico: _telefonoTecnicoController.text,
+        nombre_recibe: _nombreRecibeController.text,
+        cedula_recibe: _cedulaRecibeController.text,
       );
 
       final pdfBytes = await _formularioService.crearFormulario(
         formulario,
         _imagenes,
-        firmaTecnico,
+        firmaCliente,
       );
 
       final dir = await getTemporaryDirectory();
@@ -352,10 +407,16 @@ class _FormularioScreenState extends State<FormularioScreen> {
               // ── DATOS DEL CLIENTE ──────────────────────────
               _seccion('Datos del cliente'),
               _campo('Cliente', _clienteController),
-              _campo('Contacto', _contactoController),
+              _campo('Contacto', _contactoController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
               _campo('Dirección', _direccionController),
               _campo('Obra', _obraController),
-              _campo('Teléfono', _telefonoController),
+              _campo('Teléfono', _telefonoController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
 
               const SizedBox(height: 20),
 
@@ -584,7 +645,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
                     ],
                   )),
                   GestureDetector(
-                    onTap: _tomarFoto,
+                    onTap: _mostrarOpcionesImagen,
                     child: Container(
                       width: 100,
                       height: 100,
@@ -608,8 +669,26 @@ class _FormularioScreenState extends State<FormularioScreen> {
 
               const SizedBox(height: 20),
 
-              // ── FIRMA TÉCNICO ──────────────────────────────
-              _seccion('Firma del técnico'),
+              // ── ENTREGA ────────────────────────────────────
+              _seccion('Entrega'),
+              _campo('Nombre del técnico', _nombreTecnicoFormController),
+              _campo('Celular del técnico', _telefonoTecnicoController, keyboardType: TextInputType.phone),
+
+              // ── RECIBE ─────────────────────────────────────
+              _seccion('Recibe'),
+              _campo('Nombre de quien recibe', _nombreRecibeController),
+              _campo('Cédula de quien recibe', _cedulaRecibeController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── FIRMA CLIENTE ──────────────────────────────
+              _seccion('Firma del cliente'),
               _widgetFirma(),
 
               const SizedBox(height: 30),
@@ -663,11 +742,16 @@ class _FormularioScreenState extends State<FormularioScreen> {
     );
   }
 
-  Widget _campo(String hint, TextEditingController controller) {
+  Widget _campo(String hint, TextEditingController controller, {
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
@@ -706,7 +790,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
           SizedBox(
             height: 150,
             child: Signature(
-              controller: _firmaTecnicoController,
+              controller: _firmaClienteController,
               backgroundColor: Colors.white,
             ),
           ),
@@ -715,7 +799,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
             children: [
               TextButton.icon(
                 onPressed: () {
-                  _firmaTecnicoController.clear();
+                  _firmaClienteController.clear();
                   setState(() => _errorFirma = null);
                 },
                 icon: const Icon(Icons.clear, color: Colors.red),
@@ -749,7 +833,11 @@ class _FormularioScreenState extends State<FormularioScreen> {
     _telefonoController.dispose();
     _descripcionController.dispose();
     _materialesController.dispose();
-    _firmaTecnicoController.dispose();
+    _nombreTecnicoFormController.dispose();
+    _telefonoTecnicoController.dispose();
+    _nombreRecibeController.dispose();
+    _cedulaRecibeController.dispose();
+    _firmaClienteController.dispose();
     super.dispose();
   }
 }

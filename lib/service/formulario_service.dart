@@ -14,7 +14,7 @@ class FormularioService {
   Future<Uint8List> crearFormulario(
       Formulario formulario,
       List<File> imagenes,
-      File firmaTecnico,
+      File firmaCliente,
       ) async {
 
     final token = await _authService.getToken();
@@ -29,8 +29,8 @@ class FormularioService {
     request.fields['data'] = jsonEncode(formulario.toJson());
 
     request.files.add(await http.MultipartFile.fromPath(
-      'firmaTecnico',
-      firmaTecnico.path,
+      'firmaCliente',
+      firmaCliente.path,
       contentType: MediaType('image', 'png'),
     ));
 

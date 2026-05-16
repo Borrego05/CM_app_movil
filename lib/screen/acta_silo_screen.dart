@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -35,6 +36,9 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
   final _nombreTecnicoController = TextEditingController();
   final _cedulaTecnicoController = TextEditingController();
   final _ciudadController = TextEditingController();
+  final _telefonoTecnicoController = TextEditingController();
+  final _nombreRecibeController = TextEditingController();
+  final _cedulaRecibeController = TextEditingController();
 
   // ── SERVICIOS ───────────────────────────────────────────────
   final _authService = AuthService();
@@ -53,7 +57,7 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
   String? _errorImagenes;
 
   // ── FIRMA ───────────────────────────────────────────────────
-  final _firmaTecnicoController = SignatureController(
+  final _firmaClienteController = SignatureController(
     penStrokeWidth: 2,
     penColor: Colors.black,
   );
@@ -162,6 +166,52 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
     }
   }
 
+  Future<void> _seleccionarDeGaleria() async {
+    final List<XFile> seleccionadas = await _imagePicker.pickMultiImage(imageQuality: 85);
+    for (final XFile foto in seleccionadas) {
+      final corregida = await _corregirRotacion(File(foto.path));
+      setState(() {
+        _imagenes.add(corregida);
+        _errorImagenes = null;
+      });
+    }
+  }
+
+  void _mostrarOpcionesImagen() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFF8DD2F),
+                  child: Icon(Icons.camera_alt, color: Colors.white),
+                ),
+                title: const Text('Tomar foto'),
+                onTap: () { Navigator.pop(context); _tomarFoto(); },
+              ),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFF8DD2F),
+                  child: Icon(Icons.photo_library, color: Colors.white),
+                ),
+                title: const Text('Seleccionar de galería'),
+                onTap: () { Navigator.pop(context); _seleccionarDeGaleria(); },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _eliminarImagen(int index) {
     setState(() {
       _imagenes.removeAt(index);
@@ -265,8 +315,8 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
       } else {
         _errorImagenes = null;
       }
-      if (_firmaTecnicoController.isEmpty) {
-        _errorFirma = 'La firma del técnico es obligatoria';
+      if (_firmaClienteController.isEmpty) {
+        _errorFirma = 'La firma del cliente es obligatoria';
         valido = false;
       } else {
         _errorFirma = null;
@@ -286,9 +336,9 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
     try {
       final tecnicoId = await _authService.getTecnicoId();
 
-      final bytes = await _firmaTecnicoController.toPngBytes();
-      final path = '${Directory.systemTemp.path}/firma_tecnico.png';
-      final firmaTecnico = File(path)..writeAsBytesSync(bytes!);
+      final bytes = await _firmaClienteController.toPngBytes();
+      final path = '${Directory.systemTemp.path}/firma_cliente.png';
+      final firmaCliente = File(path)..writeAsBytesSync(bytes!);
 
       final actaSilo = ActaSilo(
         contacto: _contactoController.text,
@@ -305,9 +355,12 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
         tipo_mantenimiento: _tiposSeleccionados.join(', '),
         clase_mantenimiento: _clasesSeleccionadas.join(', '),
         tecnico_id: int.parse(tecnicoId!),
+        telefono_tecnico: _telefonoTecnicoController.text,
+        nombre_recibe: _nombreRecibeController.text,
+        cedula_recibe: _cedulaRecibeController.text,
       );
 
-      final pdfBytes = await _actaSiloService.crearActaSilo(actaSilo, _imagenes, firmaTecnico);
+      final pdfBytes = await _actaSiloService.crearActaSilo(actaSilo, _imagenes, firmaCliente);
 
       final dir = await getTemporaryDirectory();
       final pdfFile = File('${dir.path}/acta_silo.pdf');
@@ -369,7 +422,13 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
                 'identificado con C.C.',
                 style: TextStyle(fontSize: 17),
               ),
-              _campoInline(_cedulaController, 'Cédula'),
+              _campoInline(_cedulaController, 'Cédula',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+              ),
 
               const Text('de', style: TextStyle(fontSize: 17)),
               _campoInline(_ciudadCedulaController, 'Ciudad de expedición'),
@@ -598,7 +657,7 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
                     ],
                   )),
                   GestureDetector(
-                    onTap: _tomarFoto,
+                    onTap: _mostrarOpcionesImagen,
                     child: Container(
                       width: 100,
                       height: 100,
@@ -625,12 +684,25 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
               // ── ENTREGA (TÉCNICO) ──────────────────────────
               _seccion('Entrega'),
               _campo('Nombre del técnico', _nombreTecnicoController),
-              _campo('Cédula del técnico', _cedulaTecnicoController),
+              _campo('Celular del técnico', _telefonoTecnicoController, keyboardType: TextInputType.phone),
 
               const SizedBox(height: 10),
 
-              // ── FIRMA DEL TÉCNICO ──────────────────────────
-              _seccion('Firma del técnico'),
+              // ── RECIBE ─────────────────────────────────────
+              _seccion('Recibe'),
+              _campo('Nombre de quien recibe', _nombreRecibeController),
+              _campo('Cédula de quien recibe', _cedulaRecibeController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              // ── FIRMA DEL CLIENTE ──────────────────────────
+              _seccion('Firma del cliente'),
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(
@@ -643,7 +715,7 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
                     SizedBox(
                       height: 150,
                       child: Signature(
-                        controller: _firmaTecnicoController,
+                        controller: _firmaClienteController,
                         backgroundColor: Colors.white,
                       ),
                     ),
@@ -652,7 +724,7 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
                       children: [
                         TextButton.icon(
                           onPressed: () {
-                            _firmaTecnicoController.clear();
+                            _firmaClienteController.clear();
                             setState(() => _errorFirma = null);
                           },
                           icon: const Icon(Icons.clear, color: Colors.red),
@@ -726,11 +798,16 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
     );
   }
 
-  Widget _campo(String hint, TextEditingController controller) {
+  Widget _campo(String hint, TextEditingController controller, {
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
           hintText: hint,
@@ -756,11 +833,16 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
     );
   }
 
-  Widget _campoInline(TextEditingController controller, String hint) {
+  Widget _campoInline(TextEditingController controller, String hint, {
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: TextFormField(
         controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: inputFormatters,
         style: const TextStyle(fontSize: 16),
         decoration: InputDecoration(
           hintText: hint,
@@ -802,7 +884,10 @@ class _ActaSiloScreenState extends State<ActaSiloScreen> {
     _nombreTecnicoController.dispose();
     _cedulaTecnicoController.dispose();
     _ciudadController.dispose();
-    _firmaTecnicoController.dispose();
+    _telefonoTecnicoController.dispose();
+    _nombreRecibeController.dispose();
+    _cedulaRecibeController.dispose();
+    _firmaClienteController.dispose();
     super.dispose();
   }
 }

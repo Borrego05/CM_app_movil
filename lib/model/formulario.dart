@@ -9,6 +9,10 @@ class Formulario {
   final String tipo_mantenimiento;
   final String contacto;
   final int fk_tecnico_id;
+  final String nombre_tecnico;
+  final String telefono_tecnico;
+  final String nombre_recibe;
+  final String cedula_recibe;
 
   Formulario({
     required this.cliente,
@@ -21,6 +25,10 @@ class Formulario {
     required this.clases_mantenimiento,
     required this.tipo_mantenimiento,
     required this.fk_tecnico_id,
+    required this.nombre_tecnico,
+    required this.telefono_tecnico,
+    required this.nombre_recibe,
+    required this.cedula_recibe,
   });
 
   Map<String, dynamic> toJson()
@@ -36,6 +44,10 @@ class Formulario {
       'tipo_mantenimiento': tipo_mantenimiento,
       'contacto': contacto,
       'fk_tecnico_id': fk_tecnico_id,
+      'nombre_tecnico': nombre_tecnico,
+      'telefono_tecnico': telefono_tecnico,
+      'nombre_recibe': nombre_recibe,
+      'cedula_recibe': cedula_recibe,
     };
   }
 }
