@@ -1,7 +1,7 @@
 class api_config {
 
   //URL de la API
-  static const String base_url = 'http://192.168.1.169:8080';
+  static const String base_url = 'https://cmbackend-production-d885.up.railway.app';
 
   //Endpoint de autenticacion
   static const String login = '$base_url/auth/login';
