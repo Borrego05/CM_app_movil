@@ -408,12 +408,12 @@ class _FormularioScreenState extends State<FormularioScreen> {
               _seccion('Datos del cliente'),
               _campo('Nombre del Cliente', _clienteController),
               _campo('Nombre del Contacto', _contactoController),
-              _campo('Número telefónico del contacto', _telefonoController),
-              _campo('Dirección de la obra realizada', _direccionController),
-              _campo('Nombre de la obra realizada', _obraController,
+              _campo('Numero telefónico del contacto', _obraController,
                 keyboardType: TextInputType.phone,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
+              _campo('Dirección de la obra realizada', _direccionController),
+              _campo('Nombre de la obra realizada', _obraController),
 
               const SizedBox(height: 20),
 

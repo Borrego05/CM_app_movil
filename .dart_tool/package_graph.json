@@ -52,6 +52,21 @@
       ]
     },
     {
+      "name": "speech_to_text",
+      "version": "7.3.0",
+      "dependencies": [
+        "clock",
+        "flutter",
+        "flutter_web_plugins",
+        "json_annotation",
+        "meta",
+        "pedantic",
+        "speech_to_text_platform_interface",
+        "speech_to_text_windows",
+        "web"
+      ]
+    },
+    {
       "name": "image",
       "version": "4.8.0",
       "dependencies": [
@@ -273,6 +288,47 @@
       ]
     },
     {
+      "name": "speech_to_text_windows",
+      "version": "1.0.0+beta.8",
+      "dependencies": [
+        "flutter",
+        "speech_to_text_platform_interface"
+      ]
+    },
+    {
+      "name": "web",
+      "version": "1.1.1",
+      "dependencies": []
+    },
+    {
+      "name": "flutter_web_plugins",
+      "version": "0.0.0",
+      "dependencies": [
+        "flutter"
+      ]
+    },
+    {
+      "name": "pedantic",
+      "version": "1.11.1",
+      "dependencies": []
+    },
+    {
+      "name": "json_annotation",
+      "version": "4.11.0",
+      "dependencies": [
+        "meta"
+      ]
+    },
+    {
+      "name": "speech_to_text_platform_interface",
+      "version": "2.3.0",
+      "dependencies": [
+        "flutter",
+        "meta",
+        "plugin_platform_interface"
+      ]
+    },
+    {
       "name": "xml",
       "version": "6.6.1",
       "dependencies": [
@@ -295,11 +351,6 @@
       "dependencies": [
         "ffi"
       ]
-    },
-    {
-      "name": "web",
-      "version": "1.1.1",
-      "dependencies": []
     },
     {
       "name": "ffi",
@@ -359,13 +410,6 @@
         "path_provider",
         "plugin_platform_interface",
         "uuid"
-      ]
-    },
-    {
-      "name": "flutter_web_plugins",
-      "version": "0.0.0",
-      "dependencies": [
-        "flutter"
       ]
     },
     {
@@ -685,6 +729,13 @@
       ]
     },
     {
+      "name": "plugin_platform_interface",
+      "version": "2.1.8",
+      "dependencies": [
+        "meta"
+      ]
+    },
+    {
       "name": "petitparser",
       "version": "7.0.2",
       "dependencies": [
@@ -699,13 +750,6 @@
         "ffi",
         "meta",
         "path"
-      ]
-    },
-    {
-      "name": "plugin_platform_interface",
-      "version": "2.1.8",
-      "dependencies": [
-        "meta"
       ]
     },
     {
@@ -956,50 +1000,6 @@
         "collection",
         "meta",
         "pub_semver"
-      ]
-    },
-    {
-      "name": "speech_to_text",
-      "version": "7.3.0",
-      "dependencies": [
-        "clock",
-        "flutter",
-        "flutter_web_plugins",
-        "json_annotation",
-        "meta",
-        "pedantic",
-        "speech_to_text_platform_interface",
-        "speech_to_text_windows",
-        "web"
-      ]
-    },
-    {
-      "name": "speech_to_text_platform_interface",
-      "version": "2.3.0",
-      "dependencies": [
-        "flutter",
-        "meta",
-        "plugin_platform_interface"
-      ]
-    },
-    {
-      "name": "pedantic",
-      "version": "1.11.1",
-      "dependencies": []
-    },
-    {
-      "name": "json_annotation",
-      "version": "4.11.0",
-      "dependencies": [
-        "meta"
-      ]
-    },
-    {
-      "name": "speech_to_text_windows",
-      "version": "1.0.0+beta.8",
-      "dependencies": [
-        "flutter",
-        "speech_to_text_platform_interface"
       ]
     }
   ],
