@@ -408,7 +408,7 @@ class _FormularioScreenState extends State<FormularioScreen> {
               _seccion('Datos del cliente'),
               _campo('Nombre del Cliente', _clienteController),
               _campo('Nombre del Contacto', _contactoController),
-              _campo('Numero telefónico del contacto', _obraController,
+              _campo('Numero telefónico del contacto', _telefonoController,
                 keyboardType: TextInputType.phone,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               ),
